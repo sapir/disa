@@ -10,7 +10,7 @@ mod tests {
 
     macro_rules! assert_dw {
         ( $word:tt, $result:expr ) => {
-            assert_eq!(AvrInsn::decode($word), Some($result));
+            assert_eq!(AvrInsn::decode_word($word), Some($result));
         };
     }
 
@@ -4439,7 +4439,7 @@ mod tests {
             0xfb_cf, 0xfe_b8, 0xff_c8, 0xff_fa, 0xff_fe, 0xff_ff,
             ]
         {
-            assert_eq!(AvrInsn::decode(word), None);
+            assert_eq!(AvrInsn::decode_word(word), None);
         }
     }
 }

@@ -103,7 +103,7 @@ pub enum AvrInsn {
     LdsWord1(Reg),
     StsWord1(Reg),
     Lds(Reg, u16),
-    Sts(Reg, u16),
+    Sts(u16, Reg),
 
     Xch(MemAccess, Reg),
     Las(MemAccess, Reg),
@@ -169,8 +169,8 @@ pub enum AvrInsn {
     JmpWord1(u8),
     CallWord1(u8),
 
-    Jmp(u16),
-    Call(u16),
+    Jmp(u32),
+    Call(u32),
 
     Adiw(RegPair, u8),
     Sbiw(RegPair, u8),
@@ -226,7 +226,7 @@ fn get_bit(word: u16, bit: u8) -> u8 {
 
 
 impl AvrInsn {
-    pub fn decode(word: u16) -> Option<AvrInsn> {
+    pub fn decode_word(word: u16) -> Option<AvrInsn> {
         let bits = |hi: u8, lo: u8| -> u16 {
             extract_bits(word, hi, lo)
         };
@@ -647,6 +647,52 @@ impl AvrInsn {
             },
 
             _ => None,
+        }
+    }
+
+    pub fn decode(input: &[u16]) -> Option<(&[u16], AvrInsn)> {
+        if input.is_empty() {
+            return None;
+        }
+
+        let word = input[0];
+        let insn = AvrInsn::decode_word(word)?;
+
+        let rest = &input[1..];
+
+        match insn {
+            AvrInsn::LdsWord1(_) | AvrInsn::StsWord1(_) => {
+                let addr = rest[0];
+                let rest = &rest[1..];
+
+                let full_insn = match insn {
+                    AvrInsn::LdsWord1(reg) => AvrInsn::Lds(reg, addr),
+                    AvrInsn::StsWord1(reg) => AvrInsn::Sts(addr, reg),
+                    _ => unreachable!(),
+                };
+
+                Some((rest, full_insn))
+            },
+
+            AvrInsn::JmpWord1(val1) | AvrInsn::CallWord1(val1) => {
+                let val2 = rest[0];
+                let rest = &rest[1..];
+
+                let opcode = match insn {
+                    AvrInsn::JmpWord1(_) => AvrInsn::Jmp,
+                    AvrInsn::CallWord1(_) => AvrInsn::Call,
+                    _ => unreachable!(),
+                };
+
+                let val1 = val1 as u32;
+                let val2 = val2 as u32;
+                let addr = (val1 << 16) | val2;
+                let full_insn = opcode(addr);
+
+                Some((rest, full_insn))
+            },
+
+            _ => Some((rest, insn))
         }
     }
 }
