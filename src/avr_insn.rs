@@ -695,4 +695,13 @@ impl AvrInsn {
             _ => Some((rest, insn))
         }
     }
+
+    pub fn byte_size(&self) -> usize {
+        match self {
+            AvrInsn::Lds(_, _) | AvrInsn::Sts(_, _)
+                | AvrInsn::Jmp(_) | AvrInsn::Call(_) => 4,
+
+            _ => 2,
+        }
+    }
 }
