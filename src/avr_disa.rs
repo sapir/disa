@@ -15,14 +15,10 @@ impl<'a> Iterator for AvrDisassembler<'a> {
     type Item = AvrInsn;
 
     fn next(&mut self) -> Option<AvrInsn> {
-        match AvrInsn::decode(self.input) {
-            Some((rest, insn)) => {
-                self.input = rest;
-                Some(insn)
-            },
-
-            None => None
-        }
+        AvrInsn::decode(self.input).map(|(rest, insn)| {
+            self.input = rest;
+            insn
+        })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
