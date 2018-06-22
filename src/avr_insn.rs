@@ -687,7 +687,9 @@ impl AvrInsn {
                 let val1 = val1 as u32;
                 let val2 = val2 as u32;
                 let addr = (val1 << 16) | val2;
-                let full_insn = opcode(addr);
+
+                // *2 to get address in bytes
+                let full_insn = opcode(addr * 2);
 
                 Some((rest, full_insn))
             },
