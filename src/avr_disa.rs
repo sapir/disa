@@ -6,7 +6,7 @@ pub struct AvrDisassembler<'a> {
 }
 
 impl<'a> AvrDisassembler<'a> {
-    pub fn new(input: &'a [u16]) -> AvrDisassembler<'a> {
+    pub fn new(input: &'a [u16]) -> Self {
         AvrDisassembler { input }
     }
 }
