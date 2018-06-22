@@ -1,3 +1,10 @@
+extern crate disa;
+
+use disa::AvrInsn;
+
+
 fn main() {
-    println!("Hello, world!");
+    let insn = AvrInsn::decode(0x0173);
+
+    println!("{:?}", insn);
 }
