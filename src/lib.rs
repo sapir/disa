@@ -1,6 +1,8 @@
 mod avr_insn;
+mod avr_disa;
 
 pub use avr_insn::*;
+pub use avr_disa::AvrDisassembler;
 
 
 #[cfg(test)]
@@ -4441,5 +4443,54 @@ mod tests {
         {
             assert_eq!(AvrInsn::decode_word(word), None);
         }
+    }
+
+    #[test]
+    fn test_disassemble_multiple() {
+        // input here is avr-libc's printf
+        let input = &[
+            0x93_cf,
+            0x93_df,
+            0xb7_cd,
+            0xb7_de,
+            0x01_ae,
+            0x5f_4a,
+            0x4f_5f,
+            0x01_fa,
+            0x91_61,
+            0x91_71,
+            0x01_af,
+            0x91_80, 0x12_34,
+            0x91_90, 0x56_78,
+            0x94_0e, 0x9a_bc,
+            0x91_df,
+            0x91_cf,
+            0x95_08,
+        ];
+
+        let expected_output = &[
+            Push(Reg(28)),
+            Push(Reg(29)),
+            In(Reg(28), 0x3d),
+            In(Reg(29), 0x3e),
+            Movw(RegPair(20), RegPair(28)),
+            Subi(Reg(20), 0xFA),
+            Sbci(Reg(21), 0xFF),
+            Movw(RegPair(30), RegPair(20)),
+            Ld(Reg(22), MemAccess::post_inc(Z)),
+            Ld(Reg(23), MemAccess::post_inc(Z)),
+            Movw(RegPair(20), RegPair(30)),
+            Lds(Reg(24), 0x1234),
+            Lds(Reg(25), 0x5678),
+            Call(0x9abc),
+            Pop(Reg(29)),
+            Pop(Reg(28)),
+            Ret,
+        ];
+
+        let actual_output: Vec<AvrInsn> =
+            AvrDisassembler::new(input).collect();
+
+        assert_eq!(actual_output.as_slice(), expected_output);
     }
 }
