@@ -706,4 +706,8 @@ impl AvrInsn {
             _ => 2,
         }
     }
+
+    pub fn get_rel_jmp_target(next_pc: u32, ofs: i16) -> u32 {
+        next_pc.wrapping_add(ofs as i32 as u32)
+    }
 }
