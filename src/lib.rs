@@ -4463,7 +4463,7 @@ mod tests {
             0x01_af,
             0x91_80, 0x12_34,
             0x91_90, 0x56_78,
-            0x94_0e, 0x9a_bc,
+            0x94_0e, 0x4d_5e,  // call operand is shifted >>1
             0x91_df,
             0x91_cf,
             0x95_08,
