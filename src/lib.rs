@@ -4448,6 +4448,7 @@ mod tests {
     #[test]
     fn test_disassemble_multiple() {
         // input here is avr-libc's printf
+        let start_addr = 0x300;
         let input = &[
             0x93_cf,
             0x93_df,
@@ -4469,27 +4470,27 @@ mod tests {
         ];
 
         let expected_output = &[
-            Push(Reg(28)),
-            Push(Reg(29)),
-            In(Reg(28), 0x3d),
-            In(Reg(29), 0x3e),
-            Movw(RegPair(20), RegPair(28)),
-            Subi(Reg(20), 0xFA),
-            Sbci(Reg(21), 0xFF),
-            Movw(RegPair(30), RegPair(20)),
-            Ld(Reg(22), MemAccess::post_inc(Z)),
-            Ld(Reg(23), MemAccess::post_inc(Z)),
-            Movw(RegPair(20), RegPair(30)),
-            Lds(Reg(24), 0x1234),
-            Lds(Reg(25), 0x5678),
-            Call(0x9abc),
-            Pop(Reg(29)),
-            Pop(Reg(28)),
-            Ret,
+            (0x300, Push(Reg(28))),
+            (0x302, Push(Reg(29))),
+            (0x304, In(Reg(28), 0x3d)),
+            (0x306, In(Reg(29), 0x3e)),
+            (0x308, Movw(RegPair(20), RegPair(28))),
+            (0x30a, Subi(Reg(20), 0xFA)),
+            (0x30c, Sbci(Reg(21), 0xFF)),
+            (0x30e, Movw(RegPair(30), RegPair(20))),
+            (0x310, Ld(Reg(22), MemAccess::post_inc(Z))),
+            (0x312, Ld(Reg(23), MemAccess::post_inc(Z))),
+            (0x314, Movw(RegPair(20), RegPair(30))),
+            (0x316, Lds(Reg(24), 0x1234)),
+            (0x31a, Lds(Reg(25), 0x5678)),
+            (0x31e, Call(0x9abc)),
+            (0x322, Pop(Reg(29))),
+            (0x324, Pop(Reg(28))),
+            (0x326, Ret),
         ];
 
-        let actual_output: Vec<AvrInsn> =
-            AvrDisassembler::new(input).collect();
+        let actual_output: Vec<(u32, AvrInsn)> =
+            AvrDisassembler::new(start_addr, input).collect();
 
         assert_eq!(actual_output.as_slice(), expected_output);
     }
