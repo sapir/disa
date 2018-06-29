@@ -710,4 +710,8 @@ impl AvrInsn {
     pub fn get_rel_jmp_target(next_pc: u32, ofs: i16) -> u32 {
         next_pc.wrapping_add(ofs as i32 as u32)
     }
+
+    pub fn get_following_addr(&self, pc: u32) -> u32 {
+        pc + (self.byte_size() as u32)
+    }
 }

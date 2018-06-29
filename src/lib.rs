@@ -7,8 +7,31 @@ pub use avr_disa::AvrDisassembler;
 
 #[cfg(test)]
 mod tests {
+    extern crate itertools;
+
+    use self::itertools::Itertools;
     use super::*;
     use AvrInsn::*;
+
+    const PRINTF_BYTES: &[u16] = &[
+        0x93_cf,
+        0x93_df,
+        0xb7_cd,
+        0xb7_de,
+        0x01_ae,
+        0x5f_4a,
+        0x4f_5f,
+        0x01_fa,
+        0x91_61,
+        0x91_71,
+        0x01_af,
+        0x91_80, 0x12_34,
+        0x91_90, 0x56_78,
+        0x94_0e, 0x4d_5e,  // call operand is 0x9abc shifted >>1
+        0x91_df,
+        0x91_cf,
+        0x95_08,
+    ];
 
     macro_rules! assert_dw {
         ( $word:tt, $result:expr ) => {
@@ -4447,27 +4470,7 @@ mod tests {
 
     #[test]
     fn test_disassemble_multiple() {
-        // input here is avr-libc's printf
         let start_addr = 0x300;
-        let input = &[
-            0x93_cf,
-            0x93_df,
-            0xb7_cd,
-            0xb7_de,
-            0x01_ae,
-            0x5f_4a,
-            0x4f_5f,
-            0x01_fa,
-            0x91_61,
-            0x91_71,
-            0x01_af,
-            0x91_80, 0x12_34,
-            0x91_90, 0x56_78,
-            0x94_0e, 0x4d_5e,  // call operand is shifted >>1
-            0x91_df,
-            0x91_cf,
-            0x95_08,
-        ];
 
         let expected_output = &[
             (0x300, Push(Reg(28))),
@@ -4490,8 +4493,19 @@ mod tests {
         ];
 
         let actual_output: Vec<(u32, AvrInsn)> =
-            AvrDisassembler::new(start_addr, input).collect();
+            AvrDisassembler::new(start_addr, PRINTF_BYTES).collect();
 
         assert_eq!(actual_output.as_slice(), expected_output);
+    }
+
+    #[test]
+    fn test_following_addr() {
+        let output: Vec<_> =
+            AvrDisassembler::new(0x300, PRINTF_BYTES).collect();
+
+        let pairs = output.iter().tuple_windows();
+        for ((insn_addr, insn), (next_insn_addr, _)) in pairs {
+            assert_eq!(insn.get_following_addr(*insn_addr), *next_insn_addr);
+        }
     }
 }
